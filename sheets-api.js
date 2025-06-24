@@ -1,34 +1,28 @@
 class OrderManager {
-    constructor(sheetId, apiKey) {
+    constructor(webhookUrl, sheetId) {
+        this.webhookUrl = webhookUrl;
         this.sheetId = sheetId;
-        this.apiKey = apiKey;
         this.sheetName = 'Orders';
-        this.baseUrl = 'https://sheets.googleapis.com/v4/spreadsheets';
     }
 
     async addOrder(orderData) {
         try {
-            const values = [[
-                orderData.id || this.generateOrderId(),
-                orderData.timestamp,
-                orderData.tableNumber,
-                orderData.menuItems,
-                orderData.specialNotes || '',
-                orderData.status || '受付'
-            ]];
+            const data = {
+                id: orderData.id || this.generateOrderId(),
+                timestamp: orderData.timestamp,
+                tableNumber: orderData.tableNumber,
+                menuItems: orderData.menuItems,
+                specialNotes: orderData.specialNotes || '',
+                status: orderData.status || '受付'
+            };
 
-            const response = await fetch(
-                `${this.baseUrl}/${this.sheetId}/values/${this.sheetName}:append?valueInputOption=RAW&key=${this.apiKey}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        values: values
-                    })
-                }
-            );
+            const response = await fetch(this.webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

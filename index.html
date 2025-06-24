@@ -312,20 +312,21 @@
 
     <script src="sheets-api.js"></script>
     <script>
-        // Google Sheets設定 - 実際の値に変更してください
+        // Google Apps Script設定
+        const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxctjlFl5jkrTxY2mUShlzF0U10YCk7EZX2LZOGOEW1oVe8hDLIhyOKDr5EG46Zrn0/exec';
         const SHEET_ID = '1PwVfRcBMw_NuXUJ-IKunPgKfMD9zx1NWRpYzFY7WGJ8';
-        const API_KEY = 'AIzaSyBNcD3o4GxYeE7zbTENEQnD7nZny1YgOBA';
+        const API_KEY = '';
         
         // OrderManagerのインスタンス作成
         let orderManager = null;
         
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
-            if (SHEET_ID !== 'YOUR_GOOGLE_SHEET_ID_HERE' && API_KEY !== 'YOUR_GOOGLE_API_KEY_HERE') {
-                orderManager = new OrderManager(SHEET_ID, API_KEY);
-                console.log('Google Sheets連携が有効化されました');
+            if (WEBHOOK_URL) {
+                orderManager = new OrderManager(WEBHOOK_URL, SHEET_ID);
+                console.log('Google Apps Script連携が有効化されました');
             } else {
-                console.warn('Google Sheets APIの設定が必要です。SHEET_IDとAPI_KEYを設定してください。');
+                console.warn('Google Apps Script Webhook URLの設定が必要です。');
             }
         });
 
