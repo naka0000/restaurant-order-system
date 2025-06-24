@@ -93,31 +93,9 @@ class OrderManager {
     }
 
     async initializeSheet() {
-        try {
-            const headers = [['注文ID', '日時', 'テーブル', '注文内容', '特記事項', 'ステータス']];
-            
-            const response = await fetch(
-                `${this.baseUrl}/${this.sheetId}/values/${this.sheetName}!A1:F1?valueInputOption=RAW&key=${this.apiKey}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        values: headers
-                    })
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('シート初期化エラー:', error);
-            throw error;
-        }
+        // Google Apps Scriptで初期化は不要
+        console.log('Google Apps Script使用時は初期化不要');
+        return true;
     }
 }
 
