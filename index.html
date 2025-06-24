@@ -329,7 +329,7 @@
             }
         });
 
-        function showTab(tabName) {
+        function showTab(tabName, event) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
             
@@ -479,10 +479,26 @@
             container.innerHTML = ordersHtml;
         }
 
-        function updateOrderStatus(orderId, newStatus) {
-            console.log(`注文 #${orderId} のステータスを "${newStatus}" に更新`);
-            alert(`注文 #${orderId} のステータスを "${newStatus}" に更新しました`);
-            loadOrders();
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                if (orderManager) {
+                    // Google Sheetsでステータス更新
+                    await orderManager.updateOrderStatus(orderId, newStatus);
+                    console.log(`注文 #${orderId} のステータスをGoogle Sheetsで "${newStatus}" に更新しました`);
+                    alert(`注文 #${orderId} のステータスを "${newStatus}" に更新しました`);
+                } else {
+                    // 設定がない場合はローカルのみ
+                    console.log(`注文 #${orderId} のステータスを "${newStatus}" に更新（ローカルのみ）`);
+                    alert(`注文 #${orderId} のステータスを "${newStatus}" に更新しました（Google Sheets設定が必要）`);
+                }
+                
+                // 注文一覧を再読み込み
+                loadOrders();
+                
+            } catch (error) {
+                console.error('ステータス更新エラー:', error);
+                alert('ステータスの更新に失敗しました: ' + error.message);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
