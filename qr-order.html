@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR注文システム - 飲食店管理システム</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 16px;
+            padding: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* QRコード生成タブ */
+        .qr-generator {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .qr-settings {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .settings-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .qr-display {
+            text-align: center;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .qr-code {
+            margin-bottom: 20px;
+        }
+
+        .qr-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .qr-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .qr-btn.primary {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .qr-btn.secondary {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        /* 顧客向け注文画面 */
+        .customer-order {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .restaurant-header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .restaurant-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 10px;
+        }
+
+        .restaurant-subtitle {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .table-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .menu-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .menu-header {
+            background: #f8f9fa;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .menu-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .menu-items {
+            padding: 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+        }
+
+        .menu-item:hover {
+            background: #f8f9fa;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-right: 20px;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 5px;
+        }
+
+        .item-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .item-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qty-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .qty-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .qty-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .qty-display {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .order-summary {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            padding: 20px 25px;
+        }
+
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .summary-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .summary-total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .order-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .order-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .qr-settings {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px 10px;
+            }
+
+            .menu-item {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .item-image {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-title">🍽️ レストラン管理システム</div>
+            <div class="nav-links">
+                <a href="index.html">注文管理</a>
+                <a href="dashboard.html">ダッシュボード</a>
+                <a href="menu-management.html">メニュー管理</a>
+                <a href="customer-management.html">顧客管理</a>
+                <a href="inventory.html">在庫管理</a>
+                <a href="qr-order.html" class="active">QR注文</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('generator')">QRコード生成</button>
+            <button class="tab" onclick="showTab('customer')">顧客注文画面</button>
+        </div>
+
+        <!-- QRコード生成タブ -->
+        <div id="generator-tab" class="tab-content active">
+            <div class="qr-generator">
+                <h1 class="header-title">QRコード生成</h1>
+                
+                <div class="qr-settings">
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label class="form-label">テーブル番号</label>
+                            <input type="text" class="form-input" id="tableNumber" placeholder="例: テーブル 1" value="テーブル 1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">注文画面URL</label>
+                            <input type="text" class="form-input" id="orderUrl" placeholder="https://your-restaurant.com/order" value="https://restaurant.example.com/order">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">QRコードサイズ</label>
+                            <select class="form-input" id="qrSize">
+                                <option value="200">小 (200x200)</option>
+                                <option value="300" selected>中 (300x300)</option>
+                                <option value="400">大 (400x400)</option>
+                            </select>
+                        </div>
+                        
+                        <button class="generate-btn" onclick="generateQR()">QRコードを生成</button>
+                    </div>
+                    
+                    <div class="qr-display">
+                        <div class="qr-code" id="qrcode">
+                            <div style="padding: 50px; color: #666;">
+                                QRコードがここに表示されます
+                            </div>
+                        </div>
+                        
+                        <div class="qr-info" id="qrInfo">
+                            テーブル番号とURLを入力してQRコードを生成してください
+                        </div>
+                        
+                        <div class="qr-actions">
+                            <button class="qr-btn primary" onclick="downloadQR()" id="downloadBtn" style="display: none;">💾 ダウンロード</button>
+                            <button class="qr-btn secondary" onclick="printQR()" id="printBtn" style="display: none;">🖨️ 印刷</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 顧客注文画面タブ -->
+        <div id="customer-tab" class="tab-content">
+            <div class="customer-order">
+                <div class="restaurant-header">
+                    <h1 class="restaurant-name">美味しい食堂</h1>
+                    <p class="restaurant-subtitle">新鮮な食材を使った手作り料理をお楽しみください</p>
+                    <div class="table-info" id="customerTableInfo">テーブル 1</div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-header">
+                        <h2 class="menu-title">🍜 ラーメン</h2>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="item-image">🍜</div>
+                            <div class="item-details">
+                                <div class="item-name">醤油ラーメン</div>
+                                <div class="item-description">昔ながらの醤油ベースのあっさりラーメン</div>
+                                <div class="item-price">¥800</div>
+                            </div>
+                            <div class="item-quantity">
+                                <button class="qty-btn" onclick="changeQuantity('ramen1', -1)">−</button>
+                                <div class="qty-display" id="qty-ramen1">0</div>
+                                <button class="qty-btn" onclick="changeQuantity('ramen1', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="menu-item">
+                            <div class="item-image">🍜</div>
+                            <div class="item-details">
+                                <div class="item-name">味噌ラーメン</div>
+                                <div class="item-description">濃厚な味噌スープが自慢の一杯</div>
+                                <div class="item-price">¥850</div>
+                            </div>
+                            <div class="item-quantity">
+                                <button class="qty-btn" onclick="changeQuantity('ramen2', -1)">−</button>
+                                <div class="qty-display" id="qty-ramen2">0</div>
+                                <button class="qty-btn" onclick="changeQuantity('ramen2', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-header">
+                        <h2 class="menu-title">🥟 サイドメニュー</h2>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="item-image">🥟</div>
+                            <div class="item-details">
+                                <div class="item-name">餃子セット</div>
+                                <div class="item-description">手作り餃子6個セット</div>
+                                <div class="item-price">¥600</div>
+                            </div>
+                            <div class="item-quantity">
+                                <button class="qty-btn" onclick="changeQuantity('gyoza', -1)">−</button>
+                                <div class="qty-display" id="qty-gyoza">0</div>
+                                <button class="qty-btn" onclick="changeQuantity('gyoza', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="menu-item">
+                            <div class="item-image">🍚</div>
+                            <div class="item-details">
+                                <div class="item-name">チャーハン</div>
+                                <div class="item-description">パラパラに炒めた本格チャーハン</div>
+                                <div class="item-price">¥700</div>
+                            </div>
+                            <div class="item-quantity">
+                                <button class="qty-btn" onclick="changeQuantity('fried_rice', -1)">−</button>
+                                <div class="qty-display" id="qty-fried_rice">0</div>
+                                <button class="qty-btn" onclick="changeQuantity('fried_rice', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-header">
+                        <h2 class="menu-title">🍺 ドリンク</h2>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item">
+                            <div class="item-image">🍺</div>
+                            <div class="item-details">
+                                <div class="item-name">生ビール</div>
+                                <div class="item-description">キンキンに冷えた生ビール</div>
+                                <div class="item-price">¥500</div>
+                            </div>
+                            <div class="item-quantity">
+                                <button class="qty-btn" onclick="changeQuantity('beer', -1)">−</button>
+                                <div class="qty-display" id="qty-beer">0</div>
+                                <button class="qty-btn" onclick="changeQuantity('beer', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="menu-item">
+                            <div class="item-image">🥤</div>
+                            <div class="item-details">
+                                <div class="item-name">ソフトドリンク</div>
+                                <div class="item-description">コーラ、オレンジ、ウーロン茶など</div>
+                                <div class="item-price">¥300</div>
+                            </div>
+                            <div class="item-quantity">
+                                <button class="qty-btn" onclick="changeQuantity('soft_drink', -1)">−</button>
+                                <div class="qty-display" id="qty-soft_drink">0</div>
+                                <button class="qty-btn" onclick="changeQuantity('soft_drink', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-summary">
+                    <div class="summary-header">
+                        <div class="summary-title">ご注文内容</div>
+                        <div class="summary-total" id="orderTotal">¥0</div>
+                    </div>
+                    <button class="order-btn" onclick="submitOrder()" id="submitOrderBtn" disabled>注文する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuItems = {
+            ramen1: { name: '醤油ラーメン', price: 800 },
+            ramen2: { name: '味噌ラーメン', price: 850 },
+            gyoza: { name: '餃子セット', price: 600 },
+            fried_rice: { name: 'チャーハン', price: 700 },
+            beer: { name: '生ビール', price: 500 },
+            soft_drink: { name: 'ソフトドリンク', price: 300 }
+        };
+
+        let orderQuantities = {};
+        let currentQRCanvas = null;
+
+        // 初期化
+        Object.keys(menuItems).forEach(key => {
+            orderQuantities[key] = 0;
+        });
+
+        function showTab(tabName, event) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        function generateQR() {
+            const tableNumber = document.getElementById('tableNumber').value.trim();
+            const orderUrl = document.getElementById('orderUrl').value.trim();
+            const qrSize = parseInt(document.getElementById('qrSize').value);
+
+            if (!tableNumber || !orderUrl) {
+                alert('テーブル番号とURLを入力してください');
+                return;
+            }
+
+            // QRコードデータを作成（実際にはURLパラメータとしてテーブル情報を含める）
+            const qrData = `${orderUrl}?table=${encodeURIComponent(tableNumber)}`;
+            
+            // QRコード表示エリアをクリア
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+
+            // QRコードを生成
+            QRCode.toCanvas(qrData, {
+                width: qrSize,
+                height: qrSize,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error, canvas) {
+                if (error) {
+                    console.error(error);
+                    alert('QRコードの生成に失敗しました');
+                    return;
+                }
+                
+                qrcodeDiv.appendChild(canvas);
+                currentQRCanvas = canvas;
+                
+                // 情報を更新
+                document.getElementById('qrInfo').innerHTML = `
+                    <strong>${tableNumber}</strong><br>
+                    ${orderUrl}
+                `;
+                
+                // ボタンを表示
+                document.getElementById('downloadBtn').style.display = 'block';
+                document.getElementById('printBtn').style.display = 'block';
+            });
+        }
+
+        function downloadQR() {
+            if (!currentQRCanvas) {
+                alert('まずQRコードを生成してください');
+                return;
+            }
+
+            const tableNumber = document.getElementById('tableNumber').value.trim();
+            const link = document.createElement('a');
+            link.download = `qr-code-${tableNumber.replace(/\s+/g, '-')}.png`;
+            link.href = currentQRCanvas.toDataURL();
+            link.click();
+        }
+
+        function printQR() {
+            if (!currentQRCanvas) {
+                alert('まずQRコードを生成してください');
+                return;
+            }
+
+            const tableNumber = document.getElementById('tableNumber').value.trim();
+            const orderUrl = document.getElementById('orderUrl').value.trim();
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>QRコード印刷 - ${tableNumber}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            text-align: center; 
+                            padding: 20px; 
+                        }
+                        .qr-print { 
+                            border: 2px solid #000; 
+                            padding: 20px; 
+                            margin: 20px auto; 
+                            max-width: 400px; 
+                        }
+                        .table-number { 
+                            font-size: 24px; 
+                            font-weight: bold; 
+                            margin-bottom: 20px; 
+                        }
+                        .instructions { 
+                            margin-top: 20px; 
+                            font-size: 14px; 
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="qr-print">
+                        <div class="table-number">${tableNumber}</div>
+                        <img src="${currentQRCanvas.toDataURL()}" alt="QRコード" style="max-width: 100%;">
+                        <div class="instructions">
+                            スマートフォンでQRコードを読み取って<br>
+                            注文してください
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function changeQuantity(itemId, change) {
+            const newQuantity = orderQuantities[itemId] + change;
+            if (newQuantity < 0) return;
+            
+            orderQuantities[itemId] = newQuantity;
+            document.getElementById(`qty-${itemId}`).textContent = newQuantity;
+            
+            updateOrderTotal();
+        }
+
+        function updateOrderTotal() {
+            let total = 0;
+            let hasItems = false;
+            
+            Object.keys(orderQuantities).forEach(itemId => {
+                const quantity = orderQuantities[itemId];
+                if (quantity > 0) {
+                    total += menuItems[itemId].price * quantity;
+                    hasItems = true;
+                }
+            });
+            
+            document.getElementById('orderTotal').textContent = `¥${total.toLocaleString()}`;
+            document.getElementById('submitOrderBtn').disabled = !hasItems;
+        }
+
+        function submitOrder() {
+            const orderItems = [];
+            let total = 0;
+            
+            Object.keys(orderQuantities).forEach(itemId => {
+                const quantity = orderQuantities[itemId];
+                if (quantity > 0) {
+                    const item = menuItems[itemId];
+                    orderItems.push({
+                        name: item.name,
+                        quantity: quantity,
+                        price: item.price,
+                        total: item.price * quantity
+                    });
+                    total += item.price * quantity;
+                }
+            });
+            
+            if (orderItems.length === 0) {
+                alert('注文商品を選択してください');
+                return;
+            }
+            
+            // 注文確認
+            const orderSummary = orderItems.map(item => 
+                `${item.name} × ${item.quantity} = ¥${item.total.toLocaleString()}`
+            ).join('\n');
+            
+            const confirmed = confirm(`注文内容を確認してください:\n\n${orderSummary}\n\n合計: ¥${total.toLocaleString()}\n\n注文を送信しますか？`);
+            
+            if (confirmed) {
+                // 実際のシステムでは、ここでサーバーに注文データを送信
+                alert('注文を受け付けました！\nキッチンに送信されました。\nしばらくお待ちください。');
+                
+                // 注文をリセット
+                Object.keys(orderQuantities).forEach(itemId => {
+                    orderQuantities[itemId] = 0;
+                    document.getElementById(`qty-${itemId}`).textContent = '0';
+                });
+                updateOrderTotal();
+            }
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateOrderTotal();
+            
+            // URLパラメータからテーブル番号を取得（実際の顧客画面用）
+            const urlParams = new URLSearchParams(window.location.search);
+            const tableParam = urlParams.get('table');
+            if (tableParam) {
+                document.getElementById('customerTableInfo').textContent = tableParam;
+            }
+        });
+    </script>
+</body>
+</html>

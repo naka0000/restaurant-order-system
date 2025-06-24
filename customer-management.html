@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顧客管理 - 飲食店管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .add-customer-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-customer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .search-filters {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            min-width: 200px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-select {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .customers-table {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .customer-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .customer-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 2px;
+        }
+
+        .customer-email {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .loyalty-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .loyalty-bronze {
+            background: #ffeaa7;
+            color: #a0662b;
+        }
+
+        .loyalty-silver {
+            background: #d1d8e0;
+            color: #495057;
+        }
+
+        .loyalty-gold {
+            background: #fdcb6e;
+            color: #e17055;
+        }
+
+        .loyalty-platinum {
+            background: #a29bfe;
+            color: #6c5ce7;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 5px;
+            transition: all 0.3s;
+        }
+
+        .view-btn {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .edit-btn {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .delete-btn {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .cancel-btn {
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .header-section {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .search-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-title">🍽️ レストラン管理システム</div>
+            <div class="nav-links">
+                <a href="index.html">注文管理</a>
+                <a href="dashboard.html">ダッシュボード</a>
+                <a href="menu-management.html">メニュー管理</a>
+                <a href="customer-management.html" class="active">顧客管理</a>
+                <a href="inventory.html">在庫管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-section">
+            <h1 class="header-title">顧客管理</h1>
+            <button class="add-customer-btn" onclick="openModal('add')">
+                ➕ 新しい顧客を追加
+            </button>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-number">1,234</div>
+                <div class="stat-label">総顧客数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">856</div>
+                <div class="stat-label">アクティブ顧客</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">¥2,650</div>
+                <div class="stat-label">平均客単価</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3.2</div>
+                <div class="stat-label">平均来店回数</div>
+            </div>
+        </div>
+
+        <div class="search-filters">
+            <input type="text" class="search-input" placeholder="顧客を検索..." id="searchInput" onkeyup="filterCustomers()">
+            <select class="filter-select" id="loyaltyFilter" onchange="filterCustomers()">
+                <option value="">すべてのランク</option>
+                <option value="bronze">ブロンズ</option>
+                <option value="silver">シルバー</option>
+                <option value="gold">ゴールド</option>
+                <option value="platinum">プラチナ</option>
+            </select>
+            <select class="filter-select" id="statusFilter" onchange="filterCustomers()">
+                <option value="">すべてのステータス</option>
+                <option value="active">アクティブ</option>
+                <option value="inactive">非アクティブ</option>
+            </select>
+        </div>
+
+        <div class="customers-table">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>顧客情報</th>
+                            <th>電話番号</th>
+                            <th>来店回数</th>
+                            <th>総消費額</th>
+                            <th>ランク</th>
+                            <th>最終来店</th>
+                            <th>アクション</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <!-- 顧客データがここに動的に追加されます -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 顧客追加/編集モーダル -->
+    <div class="modal" id="customerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">顧客を追加</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="customerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">姓</label>
+                        <input type="text" class="form-input" id="customerLastName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">名</label>
+                        <input type="text" class="form-input" id="customerFirstName" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">電話番号</label>
+                        <input type="tel" class="form-input" id="customerPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">メールアドレス</label>
+                        <input type="email" class="form-input" id="customerEmail">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">住所</label>
+                    <input type="text" class="form-input" id="customerAddress">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">生年月日</label>
+                        <input type="date" class="form-input" id="customerBirthday">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ランク</label>
+                        <select class="form-input" id="customerLoyalty">
+                            <option value="bronze">ブロンズ</option>
+                            <option value="silver">シルバー</option>
+                            <option value="gold">ゴールド</option>
+                            <option value="platinum">プラチナ</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">備考</label>
+                    <textarea class="form-input form-textarea" id="customerNotes" placeholder="アレルギー情報、好み等"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeModal()">キャンセル</button>
+                    <button type="submit" class="save-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let customers = [
+            {
+                id: 1,
+                lastName: '田中',
+                firstName: '太郎',
+                phone: '03-1234-5678',
+                email: 'tanaka@example.com',
+                address: '東京都渋谷区',
+                birthday: '1985-03-15',
+                visitCount: 23,
+                totalSpent: 61500,
+                loyaltyLevel: 'gold',
+                lastVisit: '2024-01-20',
+                notes: '辛いものが好き',
+                status: 'active'
+            },
+            {
+                id: 2,
+                lastName: '佐藤',
+                firstName: '花子',
+                phone: '03-2345-6789',
+                email: 'sato@example.com',
+                address: '東京都新宿区',
+                birthday: '1990-07-22',
+                visitCount: 12,
+                totalSpent: 32400,
+                loyaltyLevel: 'silver',
+                lastVisit: '2024-01-18',
+                notes: 'ベジタリアン',
+                status: 'active'
+            },
+            {
+                id: 3,
+                lastName: '鈴木',
+                firstName: '一郎',
+                phone: '03-3456-7890',
+                email: 'suzuki@example.com',
+                address: '東京都世田谷区',
+                birthday: '1978-12-03',
+                visitCount: 45,
+                totalSpent: 125800,
+                loyaltyLevel: 'platinum',
+                lastVisit: '2024-01-22',
+                notes: 'ビール好き',
+                status: 'active'
+            },
+            {
+                id: 4,
+                lastName: '高橋',
+                firstName: '美咲',
+                phone: '03-4567-8901',
+                email: 'takahashi@example.com',
+                address: '東京都港区',
+                birthday: '1995-09-10',
+                visitCount: 7,
+                totalSpent: 18900,
+                loyaltyLevel: 'bronze',
+                lastVisit: '2023-12-15',
+                notes: '',
+                status: 'inactive'
+            },
+            {
+                id: 5,
+                lastName: '山田',
+                firstName: '健太',
+                phone: '03-5678-9012',
+                email: 'yamada@example.com',
+                address: '東京都品川区',
+                birthday: '1988-05-25',
+                visitCount: 18,
+                totalSpent: 47600,
+                loyaltyLevel: 'silver',
+                lastVisit: '2024-01-19',
+                notes: 'アレルギー: エビ',
+                status: 'active'
+            }
+        ];
+
+        let editingCustomerId = null;
+
+        function renderCustomers(customersToRender = customers) {
+            const tbody = document.getElementById('customersTableBody');
+            
+            if (customersToRender.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 50px; color: #666;">該当する顧客が見つかりません</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = customersToRender.map(customer => `
+                <tr>
+                    <td>
+                        <div class="customer-info">
+                            <div class="customer-avatar">${customer.lastName.charAt(0)}</div>
+                            <div class="customer-details">
+                                <div class="customer-name">${customer.lastName} ${customer.firstName}</div>
+                                <div class="customer-email">${customer.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.visitCount}回</td>
+                    <td>¥${customer.totalSpent.toLocaleString()}</td>
+                    <td>
+                        <span class="loyalty-badge loyalty-${customer.loyaltyLevel}">
+                            ${getLoyaltyText(customer.loyaltyLevel)}
+                        </span>
+                    </td>
+                    <td>${formatDate(customer.lastVisit)}</td>
+                    <td>
+                        <button class="action-btn view-btn" onclick="viewCustomer(${customer.id})">詳細</button>
+                        <button class="action-btn edit-btn" onclick="editCustomer(${customer.id})">編集</button>
+                        <button class="action-btn delete-btn" onclick="deleteCustomer(${customer.id})">削除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getLoyaltyText(level) {
+            const levels = {
+                bronze: 'ブロンズ',
+                silver: 'シルバー',
+                gold: 'ゴールド',
+                platinum: 'プラチナ'
+            };
+            return levels[level] || level;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ja-JP');
+        }
+
+        function filterCustomers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const loyaltyFilter = document.getElementById('loyaltyFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const filteredCustomers = customers.filter(customer => {
+                const fullName = `${customer.lastName} ${customer.firstName}`.toLowerCase();
+                const matchesSearch = fullName.includes(searchTerm) || 
+                                    customer.phone.includes(searchTerm) ||
+                                    customer.email.toLowerCase().includes(searchTerm);
+                const matchesLoyalty = !loyaltyFilter || customer.loyaltyLevel === loyaltyFilter;
+                const matchesStatus = !statusFilter || customer.status === statusFilter;
+
+                return matchesSearch && matchesLoyalty && matchesStatus;
+            });
+
+            renderCustomers(filteredCustomers);
+        }
+
+        function openModal(mode, customerId = null) {
+            const modal = document.getElementById('customerModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const form = document.getElementById('customerForm');
+
+            if (mode === 'add') {
+                modalTitle.textContent = '顧客を追加';
+                form.reset();
+                editingCustomerId = null;
+            } else if (mode === 'edit') {
+                modalTitle.textContent = '顧客を編集';
+                const customer = customers.find(c => c.id === customerId);
+                if (customer) {
+                    document.getElementById('customerLastName').value = customer.lastName;
+                    document.getElementById('customerFirstName').value = customer.firstName;
+                    document.getElementById('customerPhone').value = customer.phone;
+                    document.getElementById('customerEmail').value = customer.email;
+                    document.getElementById('customerAddress').value = customer.address;
+                    document.getElementById('customerBirthday').value = customer.birthday;
+                    document.getElementById('customerLoyalty').value = customer.loyaltyLevel;
+                    document.getElementById('customerNotes').value = customer.notes;
+                    editingCustomerId = customerId;
+                }
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('customerModal').style.display = 'none';
+            editingCustomerId = null;
+        }
+
+        function viewCustomer(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (customer) {
+                alert(`顧客詳細:\n名前: ${customer.lastName} ${customer.firstName}\n電話: ${customer.phone}\n来店回数: ${customer.visitCount}回\n総消費額: ¥${customer.totalSpent.toLocaleString()}\nランク: ${getLoyaltyText(customer.loyaltyLevel)}`);
+            }
+        }
+
+        function editCustomer(customerId) {
+            openModal('edit', customerId);
+        }
+
+        function deleteCustomer(customerId) {
+            if (confirm('この顧客を削除してもよろしいですか？')) {
+                customers = customers.filter(customer => customer.id !== customerId);
+                renderCustomers();
+                filterCustomers();
+            }
+        }
+
+        document.getElementById('customerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const customerData = {
+                lastName: document.getElementById('customerLastName').value,
+                firstName: document.getElementById('customerFirstName').value,
+                phone: document.getElementById('customerPhone').value,
+                email: document.getElementById('customerEmail').value,
+                address: document.getElementById('customerAddress').value,
+                birthday: document.getElementById('customerBirthday').value,
+                loyaltyLevel: document.getElementById('customerLoyalty').value,
+                notes: document.getElementById('customerNotes').value
+            };
+
+            if (editingCustomerId) {
+                const customerIndex = customers.findIndex(c => c.id === editingCustomerId);
+                if (customerIndex !== -1) {
+                    customers[customerIndex] = { ...customers[customerIndex], ...customerData };
+                }
+            } else {
+                const newCustomer = {
+                    id: Date.now(),
+                    ...customerData,
+                    visitCount: 0,
+                    totalSpent: 0,
+                    lastVisit: new Date().toISOString().split('T')[0],
+                    status: 'active'
+                };
+                customers.push(newCustomer);
+            }
+
+            closeModal();
+            renderCustomers();
+            filterCustomers();
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('customerModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCustomers();
+        });
+    </script>
+</body>
+</html>

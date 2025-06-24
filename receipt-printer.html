@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レシート印刷 - 飲食店管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        .main-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 30px;
+        }
+
+        .order-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .menu-items {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 3px;
+        }
+
+        .item-price {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .item-quantity {
+            margin: 0 15px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .item-total {
+            font-weight: 600;
+            color: #1d1d1f;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .remove-btn {
+            background: #ffebee;
+            color: #d32f2f;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .add-item-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 18px;
+            color: #667eea;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .receipt-preview {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            height: fit-content;
+        }
+
+        .preview-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            text-align: center;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .receipt-content {
+            padding: 0;
+        }
+
+        .receipt {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            padding: 20px;
+            background: white;
+            color: #000;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 15px;
+        }
+
+        .receipt-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .receipt-info {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 15px;
+        }
+
+        .receipt-items {
+            margin-bottom: 20px;
+        }
+
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .receipt-item-name {
+            flex: 1;
+        }
+
+        .receipt-item-qty {
+            margin: 0 10px;
+        }
+
+        .receipt-item-price {
+            text-align: right;
+            min-width: 60px;
+        }
+
+        .receipt-total {
+            border-top: 1px solid #000;
+            border-bottom: 1px dashed #000;
+            padding: 10px 0;
+            margin-bottom: 15px;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .print-buttons {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .print-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .print-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .print-btn.secondary {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .receipt, .receipt * {
+                visibility: visible;
+            }
+            
+            .receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 20px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-title">🍽️ レストラン管理システム</div>
+            <div class="nav-links">
+                <a href="index.html">注文管理</a>
+                <a href="dashboard.html">ダッシュボード</a>
+                <a href="menu-management.html">メニュー管理</a>
+                <a href="customer-management.html">顧客管理</a>
+                <a href="inventory.html">在庫管理</a>
+                <a href="receipt-printer.html" class="active">レシート印刷</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-section">
+            <h1 class="header-title">レシート印刷</h1>
+            
+            <div class="order-form">
+                <h3 class="form-title">注文情報</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">テーブル番号</label>
+                    <input type="text" class="form-input" id="tableNumber" placeholder="例: テーブル 3">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">メニューアイテムを追加</label>
+                    <div class="form-row">
+                        <input type="text" class="form-input" id="itemName" placeholder="商品名">
+                        <input type="number" class="form-input" id="itemQuantity" placeholder="数量" min="1" value="1">
+                        <input type="number" class="form-input" id="itemPrice" placeholder="単価">
+                    </div>
+                </div>
+                
+                <button class="add-item-btn" onclick="addMenuItem()">メニューアイテムを追加</button>
+            </div>
+
+            <div class="menu-items" id="menuItems">
+                <h3 class="form-title">注文アイテム</h3>
+                <div id="itemsList">
+                    <p style="text-align: center; color: #666; padding: 20px;">まだアイテムが追加されていません</p>
+                </div>
+            </div>
+
+            <div class="order-summary" id="orderSummary">
+                <div class="summary-row">
+                    <span>小計:</span>
+                    <span id="subtotal">¥0</span>
+                </div>
+                <div class="summary-row">
+                    <span>消費税 (10%):</span>
+                    <span id="tax">¥0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>合計:</span>
+                    <span id="total">¥0</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="clearOrder()">クリア</button>
+                <button class="btn btn-primary" onclick="generateReceipt()">レシート生成</button>
+            </div>
+        </div>
+
+        <div class="receipt-preview">
+            <div class="preview-header">
+                <h3 class="preview-title">レシートプレビュー</h3>
+            </div>
+            
+            <div class="receipt-content">
+                <div class="receipt" id="receipt">
+                    <div class="receipt-header">
+                        <div class="receipt-title">美味しい食堂</div>
+                        <div>〒150-0001</div>
+                        <div>東京都渋谷区神宮前1-1-1</div>
+                        <div>TEL: 03-1234-5678</div>
+                    </div>
+                    
+                    <div class="receipt-info">
+                        <div id="receiptDate">2024/01/24 14:30</div>
+                        <div id="receiptTable">テーブル: -</div>
+                        <div>レジ: 001 担当: 田中</div>
+                    </div>
+                    
+                    <div class="receipt-items" id="receiptItems">
+                        <div style="text-align: center; color: #666;">アイテムがありません</div>
+                    </div>
+                    
+                    <div class="receipt-total">
+                        <div class="receipt-row">
+                            <span>小計</span>
+                            <span id="receiptSubtotal">¥0</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span>消費税</span>
+                            <span id="receiptTax">¥0</span>
+                        </div>
+                        <div class="receipt-row" style="font-weight: bold; font-size: 16px;">
+                            <span>合計</span>
+                            <span id="receiptTotal">¥0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="receipt-footer">
+                        <div>ありがとうございました</div>
+                        <div>またのご来店をお待ちしております</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="print-buttons">
+                <button class="print-btn secondary" onclick="printReceipt()">🖨️ 印刷</button>
+                <button class="print-btn primary" onclick="downloadReceipt()">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let orderItems = [];
+
+        function addMenuItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+            const price = parseInt(document.getElementById('itemPrice').value);
+
+            if (!name || !quantity || !price) {
+                alert('すべての項目を入力してください');
+                return;
+            }
+
+            const item = {
+                id: Date.now(),
+                name: name,
+                quantity: quantity,
+                price: price,
+                total: quantity * price
+            };
+
+            orderItems.push(item);
+            
+            // フォームをクリア
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQuantity').value = '1';
+            document.getElementById('itemPrice').value = '';
+
+            renderOrderItems();
+            updateSummary();
+        }
+
+        function removeMenuItem(itemId) {
+            orderItems = orderItems.filter(item => item.id !== itemId);
+            renderOrderItems();
+            updateSummary();
+        }
+
+        function renderOrderItems() {
+            const itemsList = document.getElementById('itemsList');
+            
+            if (orderItems.length === 0) {
+                itemsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">まだアイテムが追加されていません</p>';
+                return;
+            }
+
+            itemsList.innerHTML = orderItems.map(item => `
+                <div class="menu-item">
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">¥${item.price.toLocaleString()} × ${item.quantity}</div>
+                    </div>
+                    <div class="item-quantity">×${item.quantity}</div>
+                    <div class="item-total">¥${item.total.toLocaleString()}</div>
+                    <button class="remove-btn" onclick="removeMenuItem(${item.id})">削除</button>
+                </div>
+            `).join('');
+        }
+
+        function updateSummary() {
+            const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0);
+            const tax = Math.floor(subtotal * 0.1);
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = `¥${subtotal.toLocaleString()}`;
+            document.getElementById('tax').textContent = `¥${tax.toLocaleString()}`;
+            document.getElementById('total').textContent = `¥${total.toLocaleString()}`;
+        }
+
+        function generateReceipt() {
+            const tableNumber = document.getElementById('tableNumber').value || '-';
+            const now = new Date();
+            const dateString = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
+
+            // レシート情報を更新
+            document.getElementById('receiptDate').textContent = dateString;
+            document.getElementById('receiptTable').textContent = `テーブル: ${tableNumber}`;
+
+            // レシートアイテムを更新
+            const receiptItems = document.getElementById('receiptItems');
+            
+            if (orderItems.length === 0) {
+                receiptItems.innerHTML = '<div style="text-align: center; color: #666;">アイテムがありません</div>';
+            } else {
+                receiptItems.innerHTML = orderItems.map(item => `
+                    <div class="receipt-item">
+                        <div class="receipt-item-name">${item.name}</div>
+                        <div class="receipt-item-qty">×${item.quantity}</div>
+                        <div class="receipt-item-price">¥${item.total.toLocaleString()}</div>
+                    </div>
+                `).join('');
+            }
+
+            // レシート合計を更新
+            const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0);
+            const tax = Math.floor(subtotal * 0.1);
+            const total = subtotal + tax;
+
+            document.getElementById('receiptSubtotal').textContent = `¥${subtotal.toLocaleString()}`;
+            document.getElementById('receiptTax').textContent = `¥${tax.toLocaleString()}`;
+            document.getElementById('receiptTotal').textContent = `¥${total.toLocaleString()}`;
+        }
+
+        function printReceipt() {
+            if (orderItems.length === 0) {
+                alert('印刷するアイテムがありません');
+                return;
+            }
+            
+            generateReceipt();
+            window.print();
+        }
+
+        function downloadReceipt() {
+            if (orderItems.length === 0) {
+                alert('保存するアイテムがありません');
+                return;
+            }
+
+            generateReceipt();
+            
+            const receiptContent = document.getElementById('receipt').innerHTML;
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>レシート</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.4; padding: 20px; max-width: 400px; margin: 0 auto; }
+                        .receipt-header { text-align: center; margin-bottom: 20px; border-bottom: 1px dashed #000; padding-bottom: 15px; }
+                        .receipt-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+                        .receipt-info { text-align: center; margin-bottom: 20px; border-bottom: 1px dashed #000; padding-bottom: 15px; }
+                        .receipt-items { margin-bottom: 20px; }
+                        .receipt-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                        .receipt-item-name { flex: 1; }
+                        .receipt-item-qty { margin: 0 10px; }
+                        .receipt-item-price { text-align: right; min-width: 60px; }
+                        .receipt-total { border-top: 1px solid #000; border-bottom: 1px dashed #000; padding: 10px 0; margin-bottom: 15px; }
+                        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                        .receipt-footer { text-align: center; font-size: 12px; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt">${receiptContent}</div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `receipt_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.html`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function clearOrder() {
+            if (orderItems.length === 0) return;
+            
+            if (confirm('注文をクリアしてもよろしいですか？')) {
+                orderItems = [];
+                document.getElementById('tableNumber').value = '';
+                renderOrderItems();
+                updateSummary();
+                generateReceipt();
+            }
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            generateReceipt();
+            
+            // Enterキーでアイテム追加
+            document.getElementById('itemPrice').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addMenuItem();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

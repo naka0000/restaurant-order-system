@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約管理 - 飲食店管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 16px;
+            padding: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .calendar-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .calendar-header {
+            background: #f8f9fa;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: 2px solid #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .calendar-cell {
+            padding: 15px 8px;
+            border-right: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+            min-height: 120px;
+            position: relative;
+        }
+
+        .calendar-cell:nth-child(7n) {
+            border-right: none;
+        }
+
+        .calendar-header-cell {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+            text-align: center;
+            padding: 15px 8px;
+            min-height: auto;
+        }
+
+        .calendar-date {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .calendar-date.other-month {
+            color: #ccc;
+        }
+
+        .calendar-date.today {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 6px;
+            padding: 4px 8px;
+            display: inline-block;
+        }
+
+        .reservation-item {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reservation-item:hover {
+            opacity: 0.8;
+        }
+
+        .reservation-list {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .list-header {
+            background: #f8f9fa;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .reservation-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .reservation-table th,
+        .reservation-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .reservation-table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .reservation-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 5px;
+            transition: all 0.3s;
+        }
+
+        .view-btn {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .edit-btn {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .cancel-btn {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .cancel-modal-btn {
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .header-section {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .calendar-nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-cell {
+                min-height: 80px;
+                padding: 10px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-title">🍽️ レストラン管理システム</div>
+            <div class="nav-links">
+                <a href="index.html">注文管理</a>
+                <a href="dashboard.html">ダッシュボード</a>
+                <a href="menu-management.html">メニュー管理</a>
+                <a href="customer-management.html">顧客管理</a>
+                <a href="inventory.html">在庫管理</a>
+                <a href="reservation.html" class="active">予約管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('calendar')">カレンダー表示</button>
+            <button class="tab" onclick="showTab('list')">リスト表示</button>
+        </div>
+
+        <!-- カレンダー表示タブ -->
+        <div id="calendar-tab" class="tab-content active">
+            <div class="header-section">
+                <h1 class="header-title">予約カレンダー</h1>
+                <button class="add-btn" onclick="openModal('add')">
+                    ➕ 新しい予約を追加
+                </button>
+            </div>
+
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <h2 class="calendar-title" id="calendarTitle">2024年1月</h2>
+                    <div class="calendar-nav">
+                        <button class="nav-btn" onclick="changeMonth(-1)">← 前月</button>
+                        <button class="nav-btn" onclick="goToToday()">今日</button>
+                        <button class="nav-btn" onclick="changeMonth(1)">次月 →</button>
+                    </div>
+                </div>
+
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- カレンダーがここに動的に生成されます -->
+                </div>
+            </div>
+        </div>
+
+        <!-- リスト表示タブ -->
+        <div id="list-tab" class="tab-content">
+            <div class="reservation-list">
+                <div class="list-header">
+                    <h2 class="list-title">予約一覧</h2>
+                    <div class="filter-controls">
+                        <select class="filter-select" id="statusFilter" onchange="filterReservations()">
+                            <option value="">すべてのステータス</option>
+                            <option value="confirmed">確定</option>
+                            <option value="pending">保留</option>
+                            <option value="cancelled">キャンセル</option>
+                        </select>
+                        <select class="filter-select" id="dateFilter" onchange="filterReservations()">
+                            <option value="">すべての日付</option>
+                            <option value="today">今日</option>
+                            <option value="tomorrow">明日</option>
+                            <option value="week">今週</option>
+                            <option value="month">今月</option>
+                        </select>
+                    </div>
+                </div>
+
+                <table class="reservation-table">
+                    <thead>
+                        <tr>
+                            <th>日時</th>
+                            <th>お客様</th>
+                            <th>人数</th>
+                            <th>連絡先</th>
+                            <th>ステータス</th>
+                            <th>アクション</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservationTableBody">
+                        <!-- 予約データがここに動的に追加されます -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 予約追加/編集モーダル -->
+    <div class="modal" id="reservationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">予約を追加</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="reservationForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">お客様名</label>
+                        <input type="text" class="form-input" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">人数</label>
+                        <input type="number" class="form-input" id="partySize" min="1" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">予約日</label>
+                        <input type="date" class="form-input" id="reservationDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">予約時間</label>
+                        <input type="time" class="form-input" id="reservationTime" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">電話番号</label>
+                        <input type="tel" class="form-input" id="customerPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">メールアドレス</label>
+                        <input type="email" class="form-input" id="customerEmail">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">ステータス</label>
+                    <select class="form-input" id="reservationStatus">
+                        <option value="pending">保留</option>
+                        <option value="confirmed">確定</option>
+                        <option value="cancelled">キャンセル</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">特記事項</label>
+                    <textarea class="form-input form-textarea" id="specialRequests" placeholder="アレルギー情報、席の希望など"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="cancel-modal-btn" onclick="closeModal()">キャンセル</button>
+                    <button type="submit" class="save-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let reservations = [
+            {
+                id: 1,
+                customerName: '田中 太郎',
+                partySize: 4,
+                date: '2024-01-25',
+                time: '18:00',
+                phone: '03-1234-5678',
+                email: 'tanaka@example.com',
+                status: 'confirmed',
+                specialRequests: '窓際の席希望'
+            },
+            {
+                id: 2,
+                customerName: '佐藤 花子',
+                partySize: 2,
+                date: '2024-01-26',
+                time: '19:30',
+                phone: '03-2345-6789',
+                email: 'sato@example.com',
+                status: 'pending',
+                specialRequests: 'アレルギー: 卵'
+            },
+            {
+                id: 3,
+                customerName: '鈴木 一郎',
+                partySize: 6,
+                date: '2024-01-27',
+                time: '17:00',
+                phone: '03-3456-7890',
+                email: 'suzuki@example.com',
+                status: 'confirmed',
+                specialRequests: '子供連れ'
+            },
+            {
+                id: 4,
+                customerName: '高橋 美咲',
+                partySize: 3,
+                date: '2024-01-24',
+                time: '20:00',
+                phone: '03-4567-8901',
+                email: 'takahashi@example.com',
+                status: 'cancelled',
+                specialRequests: ''
+            }
+        ];
+
+        let currentDate = new Date();
+        let editingReservationId = null;
+
+        function showTab(tabName, event) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            if (tabName === 'calendar') {
+                renderCalendar();
+            } else if (tabName === 'list') {
+                renderReservationList();
+            }
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('calendarTitle').textContent = `${year}年${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            
+            // ヘッダー
+            const dayHeaders = ['日', '月', '火', '水', '木', '金', '土'];
+            let html = dayHeaders.map(day => 
+                `<div class="calendar-header-cell">${day}</div>`
+            ).join('');
+            
+            // カレンダーセル
+            const current = new Date(startDate);
+            for (let i = 0; i < 42; i++) {
+                const isCurrentMonth = current.getMonth() === month;
+                const isToday = isCurrentMonth && 
+                    current.getDate() === new Date().getDate() && 
+                    current.getMonth() === new Date().getMonth() && 
+                    current.getFullYear() === new Date().getFullYear();
+                
+                const dateStr = current.toISOString().split('T')[0];
+                const dayReservations = reservations.filter(r => r.date === dateStr);
+                
+                const reservationItems = dayReservations.map(r => 
+                    `<div class="reservation-item" onclick="viewReservation(${r.id})">${r.time} ${r.customerName} (${r.partySize}名)</div>`
+                ).join('');
+                
+                html += `
+                    <div class="calendar-cell">
+                        <div class="calendar-date ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}">
+                            ${current.getDate()}
+                        </div>
+                        ${reservationItems}
+                    </div>
+                `;
+                
+                current.setDate(current.getDate() + 1);
+            }
+            
+            calendarGrid.innerHTML = html;
+        }
+
+        function renderReservationList(reservationsToRender = reservations) {
+            const tbody = document.getElementById('reservationTableBody');
+            
+            if (reservationsToRender.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 50px; color: #666;">該当する予約が見つかりません</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = reservationsToRender.map(reservation => `
+                <tr>
+                    <td>${formatDateTime(reservation.date, reservation.time)}</td>
+                    <td>${reservation.customerName}</td>
+                    <td>${reservation.partySize}名</td>
+                    <td>${reservation.phone}</td>
+                    <td>
+                        <span class="status-badge status-${reservation.status}">
+                            ${getStatusText(reservation.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn view-btn" onclick="viewReservation(${reservation.id})">詳細</button>
+                        <button class="action-btn edit-btn" onclick="editReservation(${reservation.id})">編集</button>
+                        <button class="action-btn cancel-btn" onclick="deleteReservation(${reservation.id})">削除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        function goToToday() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        function formatDateTime(date, time) {
+            const d = new Date(date);
+            return `${d.getMonth() + 1}/${d.getDate()} ${time}`;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                confirmed: '確定',
+                pending: '保留',
+                cancelled: 'キャンセル'
+            };
+            return statusMap[status] || status;
+        }
+
+        function filterReservations() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            let filteredReservations = reservations;
+            
+            if (statusFilter) {
+                filteredReservations = filteredReservations.filter(r => r.status === statusFilter);
+            }
+            
+            if (dateFilter) {
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                
+                switch (dateFilter) {
+                    case 'today':
+                        filteredReservations = filteredReservations.filter(r => r.date === todayStr);
+                        break;
+                    case 'tomorrow':
+                        const tomorrow = new Date(today);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                        filteredReservations = filteredReservations.filter(r => r.date === tomorrowStr);
+                        break;
+                    case 'week':
+                        const weekLater = new Date(today);
+                        weekLater.setDate(weekLater.getDate() + 7);
+                        filteredReservations = filteredReservations.filter(r => 
+                            r.date >= todayStr && r.date <= weekLater.toISOString().split('T')[0]
+                        );
+                        break;
+                    case 'month':
+                        const monthLater = new Date(today);
+                        monthLater.setMonth(monthLater.getMonth() + 1);
+                        filteredReservations = filteredReservations.filter(r => 
+                            r.date >= todayStr && r.date <= monthLater.toISOString().split('T')[0]
+                        );
+                        break;
+                }
+            }
+            
+            renderReservationList(filteredReservations);
+        }
+
+        function openModal(mode, reservationId = null) {
+            const modal = document.getElementById('reservationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const form = document.getElementById('reservationForm');
+
+            if (mode === 'add') {
+                modalTitle.textContent = '予約を追加';
+                form.reset();
+                editingReservationId = null;
+                
+                // デフォルト値を設定
+                const today = new Date();
+                today.setDate(today.getDate() + 1); // 明日をデフォルトに
+                document.getElementById('reservationDate').value = today.toISOString().split('T')[0];
+                document.getElementById('reservationTime').value = '18:00';
+            } else if (mode === 'edit') {
+                modalTitle.textContent = '予約を編集';
+                const reservation = reservations.find(r => r.id === reservationId);
+                if (reservation) {
+                    document.getElementById('customerName').value = reservation.customerName;
+                    document.getElementById('partySize').value = reservation.partySize;
+                    document.getElementById('reservationDate').value = reservation.date;
+                    document.getElementById('reservationTime').value = reservation.time;
+                    document.getElementById('customerPhone').value = reservation.phone;
+                    document.getElementById('customerEmail').value = reservation.email;
+                    document.getElementById('reservationStatus').value = reservation.status;
+                    document.getElementById('specialRequests').value = reservation.specialRequests;
+                    editingReservationId = reservationId;
+                }
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('reservationModal').style.display = 'none';
+            editingReservationId = null;
+        }
+
+        function viewReservation(reservationId) {
+            const reservation = reservations.find(r => r.id === reservationId);
+            if (reservation) {
+                alert(`予約詳細:\n\nお客様: ${reservation.customerName}\n人数: ${reservation.partySize}名\n日時: ${reservation.date} ${reservation.time}\n電話: ${reservation.phone}\nメール: ${reservation.email}\nステータス: ${getStatusText(reservation.status)}\n特記事項: ${reservation.specialRequests || 'なし'}`);
+            }
+        }
+
+        function editReservation(reservationId) {
+            openModal('edit', reservationId);
+        }
+
+        function deleteReservation(reservationId) {
+            if (confirm('この予約を削除してもよろしいですか？')) {
+                reservations = reservations.filter(r => r.id !== reservationId);
+                renderCalendar();
+                renderReservationList();
+                filterReservations();
+            }
+        }
+
+        document.getElementById('reservationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const reservationData = {
+                customerName: document.getElementById('customerName').value,
+                partySize: parseInt(document.getElementById('partySize').value),
+                date: document.getElementById('reservationDate').value,
+                time: document.getElementById('reservationTime').value,
+                phone: document.getElementById('customerPhone').value,
+                email: document.getElementById('customerEmail').value,
+                status: document.getElementById('reservationStatus').value,
+                specialRequests: document.getElementById('specialRequests').value
+            };
+
+            if (editingReservationId) {
+                const reservationIndex = reservations.findIndex(r => r.id === editingReservationId);
+                if (reservationIndex !== -1) {
+                    reservations[reservationIndex] = { ...reservations[reservationIndex], ...reservationData };
+                }
+            } else {
+                const newReservation = {
+                    id: Date.now(),
+                    ...reservationData
+                };
+                reservations.push(newReservation);
+            }
+
+            closeModal();
+            renderCalendar();
+            renderReservationList();
+            filterReservations();
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('reservationModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCalendar();
+        });
+    </script>
+</body>
+</html>

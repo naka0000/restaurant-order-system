@@ -129,7 +129,7 @@
 
         .order-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
@@ -310,10 +310,24 @@
         </div>
     </div>
 
+    <script src="sheets-api.js"></script>
     <script>
+        // Google Sheets設定 - 実際の値に変更してください
         const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE';
         const API_KEY = 'YOUR_GOOGLE_API_KEY_HERE';
-        const SHEET_NAME = 'Orders';
+        
+        // OrderManagerのインスタンス作成
+        let orderManager = null;
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (SHEET_ID !== 'YOUR_GOOGLE_SHEET_ID_HERE' && API_KEY !== 'YOUR_GOOGLE_API_KEY_HERE') {
+                orderManager = new OrderManager(SHEET_ID, API_KEY);
+                console.log('Google Sheets連携が有効化されました');
+            } else {
+                console.warn('Google Sheets APIの設定が必要です。SHEET_IDとAPI_KEYを設定してください。');
+            }
+        });
 
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -336,7 +350,7 @@
             }, 5000);
         }
 
-        function submitOrder() {
+        async function submitOrder() {
             const tableNumber = document.getElementById('table-number').value;
             const menuItems = document.getElementById('menu-items').value;
             const specialNotes = document.getElementById('special-notes').value;
@@ -354,41 +368,69 @@
                 status: '受付'
             };
 
-            console.log('注文データ:', orderData);
-            
-            document.getElementById('table-number').value = '';
-            document.getElementById('menu-items').value = '';
-            document.getElementById('special-notes').value = '';
-            
-            alert('注文を受け付けました！');
+            try {
+                if (orderManager) {
+                    // Google Sheetsに保存
+                    await orderManager.addOrder(orderData);
+                    console.log('注文がGoogle Sheetsに保存されました:', orderData);
+                    alert('注文を受け付けました！Google Sheetsに保存されました。');
+                } else {
+                    // 設定がない場合はローカルのみ
+                    console.log('注文データ（ローカルのみ）:', orderData);
+                    alert('注文を受け付けました！（Google Sheets設定が必要です）');
+                }
+                
+                // フォームをクリア
+                document.getElementById('table-number').value = '';
+                document.getElementById('menu-items').value = '';
+                document.getElementById('special-notes').value = '';
+                
+            } catch (error) {
+                console.error('注文送信エラー:', error);
+                showError('order-error', '注文の送信に失敗しました: ' + error.message);
+            }
         }
 
-        function loadOrders() {
+        async function loadOrders() {
             const container = document.getElementById('orders-container');
             container.innerHTML = '<div class="loading">注文を読み込み中...</div>';
 
-            const sampleOrders = [
-                {
-                    id: 1,
-                    timestamp: new Date().toLocaleString('ja-JP'),
-                    tableNumber: '3',
-                    menuItems: 'ラーメン x1\n餃子 x2',
-                    specialNotes: '辛め',
-                    status: '受付'
-                },
-                {
-                    id: 2,
-                    timestamp: new Date(Date.now() - 10 * 60 * 1000).toLocaleString('ja-JP'),
-                    tableNumber: '1',
-                    menuItems: 'チャーハン x1\nビール x2',
-                    specialNotes: '',
-                    status: '調理中'
+            try {
+                let orders = [];
+                
+                if (orderManager) {
+                    // Google Sheetsから注文を読み込み
+                    orders = await orderManager.getOrders();
+                    console.log('Google Sheetsから注文を読み込みました:', orders);
+                } else {
+                    // サンプルデータ（設定がない場合）
+                    orders = [
+                        {
+                            id: 1,
+                            timestamp: new Date().toLocaleString('ja-JP'),
+                            tableNumber: '3',
+                            menuItems: 'ラーメン x1\n餃子 x2',
+                            specialNotes: '辛め',
+                            status: '受付'
+                        },
+                        {
+                            id: 2,
+                            timestamp: new Date(Date.now() - 10 * 60 * 1000).toLocaleString('ja-JP'),
+                            tableNumber: '1',
+                            menuItems: 'チャーハン x1\nビール x2',
+                            specialNotes: '',
+                            status: '調理中'
+                        }
+                    ];
+                    console.log('サンプルデータを表示（Google Sheets設定が必要）');
                 }
-            ];
-
-            setTimeout(() => {
-                displayOrders(sampleOrders);
-            }, 1000);
+                
+                displayOrders(orders);
+                
+            } catch (error) {
+                console.error('注文読み込みエラー:', error);
+                container.innerHTML = '<div class="error">注文の読み込みに失敗しました: ' + error.message + '</div>';
+            }
         }
 
         function displayOrders(orders) {
